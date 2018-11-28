@@ -1,0 +1,14 @@
+[master]
+172.31.198.153
+[worker]
+172.31.198.153
+172.31.199.120
+172.31.198.131
+172.31.199.96
+172.31.199.145
+[all:vars]
+ansible_user=root
+ansible_port=22
+ansible_ssh_private_key_file=/Users/sthota/Documents/ssh-key-ibm.txt
+
+

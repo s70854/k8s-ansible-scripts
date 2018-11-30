@@ -1,5 +1,5 @@
 #ansible-playbook test.yml  -i ../../../inventory
 ---
-- hosts: all 
+- hosts: master
   roles:
   - role: ../..

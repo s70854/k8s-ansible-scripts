@@ -1,0 +1,4 @@
+{% for host in hostvars.keys() %}
+{{hostvars[host].ansible_default_ipv4.address}} {{hostvars[host].ansible_fqdn}} {{hostvars[host].ansible_fqdn}}.localdomain
+{% endfor %}
+

@@ -1,7 +1,10 @@
 ---
 etcd:
+  name: etcdfork8
   ports:
     client: 2379
+    peer: 2380
+  dir: /grid/0/etcd/default.etcd
 flannel:
     network: 10.172.29.0/16
     subnetLen: 24

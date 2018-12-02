@@ -1,32 +1,65 @@
 ---
 # tasks file for common
+#    /etc/hosts preparation
+#    docker&kubernetes repo configuration
+#    disable    firewall service
+#    install&enable iptables
+    
 - template:
     src: templates/hosts.j2
     dest: /root/hosts
     mode: 0755
+  name: FQDN list preparation -> /root/hosts    
+
+#- name:  Update /etc/hosts mapping in all the nodes
+#  shell:  cat /root/hosts >> /etc/hosts
 
 - template:
     src: templates/docker.repo.j2
     dest: /etc/yum.repos.d/docker.repo
     mode: 0755
+  name: Docker repo configuration      
 
 - template:
     src: templates/k8.repo.j2
     dest: /etc/yum.repos.d/k8.repo
     mode: 0755    
+  name: K8 repo configuration      
+    
 
-#- name:  Update host mapping in all the nodes
-#  shell:  cat /root/hosts >> /etc/hosts
+#- name: Install the docker/kubernetes software
+#  yum: name="{{ item }}" state=latest update_cache=yes
+#  loop:
+#    - docker
+#    - socat
+#    - kubernetes
+#    - bind-utils
+#    - etcd
+#    - flannel
 
-- name: Install the docker/kubernetes software
-  yum: name="{{ item }}" state=latest update_cache=yes
-  loop:
-    - docker
-    - socat
-    - kubernetes
-    - bind-utils
-    - etcd
-    - flannel
+- name: Disable firewall service
+  systemd:
+    state: stopped
+    enabled: no
+    name: firewalld
+
+- name: Install the iptables-services
+  yum: name="iptables-services" state=latest update_cache=yes
+
+- template:
+    src: templates/iptables.j2
+    dest: /etc/sysconfig/iptables
+    mode: 0755
+  name: generating the persistant firewall settings
+  
+- name: Enable & start iptables-services
+  systemd:
+    state: started
+    enabled: yes
+    name: iptables.service
+    
+- name: Flush or delete all the rules in iptables   
+  shell:  iptables -F
     
 - name:  Disable SE linux in /etc/selinux/config 
   replace:
@@ -42,7 +75,6 @@
     regexp: '^(.*swap.*)$'
     replace: '#\1'
     backup: yes
-
 
 - name:  Make sysctl changes permanent
   shell:  sysctl -a > /etc/sysctl.conf
@@ -60,22 +92,20 @@
     replace: 'net.ipv4.ip_forward=1'
     backup: yes
 
+#- name: Enable and start the daemons-docker
+#  systemd:
+#    name: "{{ item }}"
+#    state: started
+#    enabled: True    
+#  loop:
+#    - docker
 
-- name: Enable and start the daemons-docker
-  systemd:
-    name: "{{ item }}"
-    state: started
-    enabled: True    
-  loop:
-    - docker
-
-- name: Enable the daemons-kubelet
-  systemd:
-    name: "{{ item }}"
-    enabled: True    
-  loop:
-    - kubelet    
-
+#- name: Enable the daemons-kubelet
+#  systemd:
+#    name: "{{ item }}"
+#    enabled: True    
+#  loop:
+#    - kubelet    
 
 - name:  Reboot the node
   shell:  reboot

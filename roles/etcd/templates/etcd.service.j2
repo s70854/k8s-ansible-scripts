@@ -1,0 +1,25 @@
+[Unit]
+Description=Etcd Server
+After=network.target
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=notify
+WorkingDirectory=/var/lib/etcd/
+#EnvironmentFile=-/etc/etcd/etcd.conf
+User=etcd
+# set GOMAXPROCS to number of processors
+ExecStart=/bin/bash -c "GOMAXPROCS=$(nproc) /usr/bin/etcd --name=\"{{etcd.name}}-{{ groups.etcd.index(inventory_hostname) }}\" --data-dir=\"{{etcd.dir}}\" \
+  --listen-client-urls=\"http://{{inventory_hostname}}:{{etcd.ports.client}}\" \
+  --advertise-client-urls=\"http://{{inventory_hostname}}:{{etcd.ports.client}}\"{% if groups.etcd|length > 1 %}\
+  --listen-peer-urls=\"http://{{inventory_hostname}}:{{etcd.ports.peer}}\" \
+  --initial-advertise-peer-urls=\"http://{{inventory_hostname}}:{{etcd.ports.peer}}\" \
+  --initial-cluster-token=\"{{etcd.name}}\" \
+  --initial-cluster=\"{% for host in groups.etcd %}{{etcd.name}}-{{loop.index0}}=http://{{host}}:{{etcd.ports.peer}}{% if not loop.last %},{% endif %}{% endfor %}\" \
+  --initial-cluster-state=\"new\" {% endif %}"
+Restart=on-failure
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

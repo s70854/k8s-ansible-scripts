@@ -1,49 +1,46 @@
----
+
+
 # tasks file for etcd
 - name: Install the etcd
   yum: name="etcd" state=latest update_cache=yes
 
-- replace:
-    path: /usr/lib/systemd/system/etcd.service
-    regexp: "^ExecStart=.*"
-    replace: 'ExecStart=/bin/bash -c "GOMAXPROCS=$(nproc) /usr/bin/etcd --name=\"${ETCD_NAME}\" --data-dir=\"${ETCD_DATA_DIR}\" --listen-client-urls=\"${ETCD_LISTEN_CLIENT_URLS}\" --advertise-client-urls=\"${ETCD_ADVERTISE_CLIENT_URLS}\""'
-    backup: yes
-    
-- replace:
-    path: /etc/etcd/etcd.conf
-    regexp: "localhost"
-    replace: '0.0.0.0'  
-    backup: yes
 
-- replace:
-    path: /etc/etcd/etcd.conf
-    regexp: "^#*{{item.key}}=.*"
-    replace: '{{item.key}}="{{item.value}}"'  
-    backup: yes
-  loop:
-    - { key: 'ETCD_NAME', value: 'kubeetcd' }
-    - { key: 'ETCD_DATA_DIR', value: '/grid/0/etcd/default.etcd' }
-    - { key: 'ETCD_ADVERTISE_CLIENT_URLS', value: "http://{{ groups['etcd'][0] }}:{{etcd.ports.client}}" }
+- template:
+    src: templates/etcd.service.j2
+    dest: /usr/lib/systemd/system/etcd.service
+    mode: 0755
+  name: generating the etcd.service file
 
 - name: Create data directory for etcd
   file:  
-    path: /grid/0/etcd/default.etcd
+    path: "{{etcd.dir}}"
     owner: etcd
     group: etcd
     mode: 0744  
     state: directory
-  
+
+ 
+- name: open etcd ports on iptables --incoming
+  shell: /usr/sbin/iptables -A INPUT -m state --state NEW -p tcp --dport {{item}} -j ACCEPT
+  loop:
+    - "{{ etcd.ports.client }}"
+    - "{{ etcd.ports.peer }}"
+
 - name: Enable and start the etcd
   systemd:
     name: etcd
     state: started
     enabled: True 
-    
+
+- pause:
+    minutes: 1
 
 - name: Create flannel network configuration
   uri:
-    url: http://{{ groups['etcd'][0] }}:{{etcd.ports.client}}/v2/keys/atomic.io/network/config
+    url: http://{{ groups.etcd | first }}:{{etcd.ports.client}}/v2/keys/atomic.io/network/config
     method: PUT
     body: 'value={ "Network": "{{flannel.network}}","SubnetLen": {{flannel.subnetLen}},"Backend": {"Type": "vxlan","VNI": 1} }'
     status_code: 201
     body_format: raw
+  run_once: true
+  

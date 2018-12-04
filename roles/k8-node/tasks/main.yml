@@ -1,0 +1,32 @@
+---
+# tasks file for k8-node
+#(on agent nodes)
+# kubernetes node service installation & configuration:
+#    yum install -y kubernetes-node
+#    modify /etc/kubernetes/config
+#    modify /etc/kubernetes/kubelet 
+#    systemctl enable/start kubelet kube-proxy
+
+- name: Install k8 node components
+  yum: name="kubernetes-node" state=latest update_cache=yes
+
+- template:
+    src: templates/config.j2
+    dest: /etc/kubernetes/config
+    mode: 0755
+  name: generating kubernetes config file 
+  
+- template:
+    src: templates/kubelet.j2
+    dest: /etc/kubernetes/kubelet 
+    mode: 0755
+  name: generating kubelet config file 
+  
+- name: start the k8 node components
+  systemd:
+    name: "{{ item }}"
+    state: started
+    enabled: True  
+  with_items:
+    - kubelet 
+    - kube-proxy

@@ -1,0 +1,41 @@
+---
+# (on master node)
+# kubernetes cluster service installation & configuration:
+#    yum install -y kubernetes-master kubernetes-client
+#    openssl genrsa -out /etc/kubernetes/serviceaccount.key 2048
+#    modify /etc/kubernetes/apiserver
+#    modify /etc/kubernetes/controller-manager
+#
+#    To Start the kube-controller-manager, kube-apiserver, kube-scheduler
+#    systemctl enable/staert  kube-apiserver kube-scheduler kube-controller-manager
+
+- name: Install k8 master components
+  yum: name="{{ item }}" state=latest update_cache=yes
+  with_items:
+    - kubernetes-master 
+    - kubernetes-client
+
+- name: generate rsa key
+  shell: openssl genrsa -out /etc/kubernetes/serviceaccount.key 2048
+  
+- template:
+    src: templates/apiserver.j2
+    dest: /etc/kubernetes/apiserver
+    mode: 0755
+  name: generating apiserver config file 
+  
+- template:
+    src: templates/controller-manager.j2
+    dest: /etc/kubernetes/controller-manager
+    mode: 0755
+  name: generating controller-manager config file 
+  
+- name: start the k8 master components
+  systemd:
+    name: "{{ item }}"
+    state: started
+    enabled: True  
+  with_items:
+    - kube-apiserver 
+    - kube-scheduler
+    - kube-controller-manager    

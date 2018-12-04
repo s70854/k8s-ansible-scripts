@@ -1,0 +1,23 @@
+---
+- name: etcd cluster installation
+  hosts: etcd
+  roles: 
+  - roles/etcd
+- name: flannel nw plugin installation
+  hosts: all
+  roles: 
+  - roles/flannel
+- name: docker installation
+  hosts: all
+  roles: 
+  - roles/docker
+- name: k8s control plane installation
+  hosts: master
+  roles: 
+  - roles/k8-master
+- name: k8s data plane installation
+  hosts: worker
+  roles: 
+  - roles/k8-node
+  
+  

@@ -1,0 +1,5 @@
+---
+- name: perform the common tasks on all the nodes
+  hosts: all
+  roles: 
+  - roles/common

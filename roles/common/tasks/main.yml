@@ -85,6 +85,9 @@
     insertafter: EOF
     line: 'net.bridge.bridge-nf-call-iptables=1'  
 
+- name: add net filer module   
+  shell:  modprobe br_netfilter
+  
 - name:  Enable ip forwarding
   replace:
     path: /etc/sysctl.conf

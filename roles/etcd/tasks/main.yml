@@ -34,13 +34,6 @@
 
 - pause:
     minutes: 1
+  name: wait till the etcd cluster assemble
 
-- name: Create flannel network configuration
-  uri:
-    url: http://{{ groups.etcd | first }}:{{etcd.ports.client}}/v2/keys/atomic.io/network/config
-    method: PUT
-    body: 'value={ "Network": "{{flannel.network}}","SubnetLen": {{flannel.subnetLen}},"Backend": {"Type": "vxlan","VNI": 1} }'
-    status_code: 201
-    body_format: raw
-  run_once: true
   

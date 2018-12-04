@@ -1,0 +1,4 @@
+KUBELET_ADDRESS="--address=0.0.0.0"
+KUBELET_HOSTNAME="--hostname-override={{inventory_hostname}}"
+KUBELET_API_SERVER="--api-servers=http://{{ groups.master | first}}:8080"
+KUBELET_ARGS=""

@@ -1,0 +1,30 @@
+---
+# flanneld service installation & Configuration
+#    yum -y install flannel
+#    modify /etc/sysconfig/flanneld 
+#    systemctl enabl/estart flanneld
+
+- name: Create flannel network configuration
+  uri:
+    url: http://{{ groups.etcd | first }}:{{etcd.ports.client}}/v2/keys{{flannel.etcdKey}}/config
+    method: PUT
+    body: 'value={ "Network": "{{flannel.network}}","SubnetLen": {{flannel.subnetLen}},"Backend": {"Type": "vxlan","VNI": 1} }'
+    status_code: 201,200
+    body_format: raw
+  run_once: true
+  
+- name: Install the flannel package
+  yum: name="flannel" state=latest update_cache=yes
+  
+- template:
+    src: templates/flanneld.j2
+    dest: /etc/sysconfig/flanneld
+    mode: 0755
+  name: generate /etc/sysconfig/flanneld
+  
+- name: Enable and start the flanneld
+  systemd:
+    name: flanneld
+    state: started
+    enabled: True   
+    

@@ -1,0 +1,23 @@
+---
+#docker service installation & configuration:
+#    yum install –y docker
+# To integrate flannel with docker we need to provide some specific options to docker daemon and make it permanent every time the docker daemon starts.
+#    mkdir -p /etc/systemd/system/docker.service.d
+#    modify docker file /etc/systemd/system/docker.service.d/docker.conf 
+#    systemctl enable/staert docker
+
+- name: Install the docker package
+  yum: name="docker" state=latest update_cache=yes
+ 
+- template:
+    src: templates/docker.service.j2
+    dest: /usr/lib/systemd/system/docker.service
+    mode: 0755
+  name: generating the docker.service file 
+ 
+- name: Enable and start the docker
+  systemd:
+    name: docker
+    state: started
+    enabled: True   
+    

@@ -1,0 +1,5 @@
+KUBE_API_ADDRESS="--address=0.0.0.0"
+KUBE_ETCD_SERVERS="--etcd-servers={% for host in groups.etcd %}http://{{host}}:{{etcd.ports.client}}{% if not loop.last %},{% endif %}{% endfor %}"
+KUBE_SERVICE_ADDRESSES="--service-cluster-ip-range={{flannel.network}}"
+KUBE_ADMISSION_CONTROL="--admission-control=NamespaceLifecycle,NamespaceExists,LimitRanger,SecurityContextDeny,ServiceAccount,ResourceQuota"
+KUBE_API_ARGS="--service_account_key_file=/etc/kubernetes/serviceaccount.key"

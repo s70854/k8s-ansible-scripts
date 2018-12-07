@@ -15,8 +15,8 @@
     dest: /etc/yum.repos.d/k8.repo
     mode: 0755    
 
-#- name:  Update host mapping in all the nodes
-#  shell:  cat /root/hosts >> /etc/hosts
+- name:  Update host mapping in all the nodes
+  shell:  cat /root/hosts >> /etc/hosts
 
 - name: Install the docker/kubernetes software
   yum: name="{{ item }}" state=latest update_cache=yes
@@ -39,6 +39,8 @@
     replace: '#\1'
     backup: yes
 
+- name: add net filer module   
+  shell:  modprobe br_netfilter
 
 - name:  Make sysctl changes permanent
   shell:  sysctl -a > /etc/sysctl.conf

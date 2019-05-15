@@ -1,0 +1,12 @@
+---
+registry:
+  base_url: registry.eng.hortonworks.com
+  login:
+    user: qaas
+    password: suB8oWzstfWF1TXS_X9w
+  hostmapping:     
+    - "172.31.254.50 bnode2-1"
+    - "172.31.199.228 registry.eng.hortonworks.com"      
+...
+        
+    

@@ -1,0 +1,44 @@
+---
+# tasks file for registry
+- name: Upate hostname mappings
+  lineinfile:
+    path: /etc/hosts
+    insertbefore: EOF
+    line: "{{ item }}"
+  with_items: "{{ registry.hostmapping }}"
+- name: install CA certificate - create directory
+  file:
+    path: "/etc/docker/certs.d/{{ registry.base_url }}"
+    state: directory
+    mode: 0755
+
+- name: install CA certificate - copy ca.crt
+  copy:
+    src: templates/ca.crt
+    dest: "/etc/docker/certs.d/{{ registry.base_url }}/ca.crt"
+    owner: root
+    group: root
+    mode: 0644
+   
+# install expect dependencies
+# - name: Download and set up  python tools
+#   yum: name="{{ item }}" state=latest update_cache=yes
+#   when: ansible_facts['os_family'] == "RedHat"
+#   loop: 
+#     - python-pip
+#     - python-wheel 
+#   tags:
+#     - this    
+# - name: install pexpect. It is required for interactive command line operations
+#   pip:
+#     name: pexpect
+#     version: 3.3    
+#   tags:
+#     - this    
+- name: do docker login 
+  expect:
+    command: docker login "{{ registry.base_url }}"
+    responses:
+        Username.*: "{{registry.login.user}}"
+        Password: "{{registry.login.password}}"
+       
